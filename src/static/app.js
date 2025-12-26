@@ -1,8 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
   const capabilitiesList = document.getElementById("capabilities-list");
-  const capabilitySelect = document.getElementById("capability");
   const registerForm = document.getElementById("register-form");
   const messageDiv = document.getElementById("message");
+  const registerModal = document.getElementById("register-modal");
+  const closeModal = document.querySelector(".close-modal");
+  const modalCapabilityName = document.getElementById("modal-capability-name");
+  const selectedCapabilityInput = document.getElementById("selected-capability");
 
   // Function to fetch capabilities from API
   async function fetchCapabilities() {
@@ -47,20 +50,20 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="consultants-container">
             ${consultantsHTML}
           </div>
+          <button class="register-btn" data-capability="${name}">Register Expertise</button>
         `;
 
         capabilitiesList.appendChild(capabilityCard);
-
-        // Add option to select dropdown
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        capabilitySelect.appendChild(option);
       });
 
       // Add event listeners to delete buttons
       document.querySelectorAll(".delete-btn").forEach((button) => {
         button.addEventListener("click", handleUnregister);
+      });
+
+      // Add event listeners to register buttons
+      document.querySelectorAll(".register-btn").forEach((button) => {
+        button.addEventListener("click", handleRegisterClick);
       });
     } catch (error) {
       capabilitiesList.innerHTML =
@@ -68,6 +71,27 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error fetching capabilities:", error);
     }
   }
+
+  // Handle register button click - open modal
+  function handleRegisterClick(event) {
+    const capability = event.target.getAttribute("data-capability");
+    selectedCapabilityInput.value = capability;
+    modalCapabilityName.textContent = `Registering for: ${capability}`;
+    registerModal.classList.remove("hidden");
+    document.getElementById("email").value = "";
+    messageDiv.classList.add("hidden");
+  }
+
+  // Close modal handlers
+  closeModal.addEventListener("click", () => {
+    registerModal.classList.add("hidden");
+  });
+
+  registerModal.addEventListener("click", (event) => {
+    if (event.target === registerModal) {
+      registerModal.classList.add("hidden");
+    }
+  });
 
   // Handle unregister functionality
   async function handleUnregister(event) {
@@ -117,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
 
     const email = document.getElementById("email").value;
-    const capability = document.getElementById("capability").value;
+    const capability = selectedCapabilityInput.value;
 
     try {
       const response = await fetch(
@@ -138,17 +162,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Refresh capabilities list to show updated consultants
         fetchCapabilities();
+
+        // Close modal after successful registration
+        setTimeout(() => {
+          registerModal.classList.add("hidden");
+          messageDiv.classList.add("hidden");
+        }, 2000);
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
       }
 
       messageDiv.classList.remove("hidden");
-
-      // Hide message after 5 seconds
-      setTimeout(() => {
-        messageDiv.classList.add("hidden");
-      }, 5000);
     } catch (error) {
       messageDiv.textContent = "Failed to register. Please try again.";
       messageDiv.className = "error";
