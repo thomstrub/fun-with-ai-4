@@ -7,6 +7,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalCapabilityName = document.getElementById("modal-capability-name");
   const selectedCapabilityInput = document.getElementById("selected-capability");
 
+  // Null check for required DOM elements
+  if (
+    !capabilitiesList ||
+    !registerForm ||
+    !messageDiv ||
+    !registerModal ||
+    !closeModal ||
+    !modalCapabilityName ||
+    !selectedCapabilityInput
+  ) {
+    console.error("Required DOM elements for capabilities UI are missing. Aborting initialization.");
+    return;
+  }
+
   // Function to fetch capabilities from API
   async function fetchCapabilities() {
     try {
@@ -40,8 +54,16 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>`
             : `<p><em>No consultants registered yet</em></p>`;
 
+        // Create elements safely to avoid XSS
+        const capabilityTitle = document.createElement('h4');
+        capabilityTitle.textContent = name;
+        
+        const registerBtn = document.createElement('button');
+        registerBtn.className = 'register-btn';
+        registerBtn.textContent = 'Register Expertise';
+        registerBtn.setAttribute('data-capability', name);
+        
         capabilityCard.innerHTML = `
-          <h4>${name}</h4>
           <p>${details.description}</p>
           <p><strong>Practice Area:</strong> ${details.practice_area}</p>
           <p><strong>Industry Verticals:</strong> ${details.industry_verticals ? details.industry_verticals.join(', ') : 'Not specified'}</p>
@@ -50,8 +72,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="consultants-container">
             ${consultantsHTML}
           </div>
-          <button class="register-btn" data-capability="${name}">Register Expertise</button>
         `;
+        
+        capabilityCard.insertBefore(capabilityTitle, capabilityCard.firstChild);
+        capabilityCard.appendChild(registerBtn);
 
         capabilitiesList.appendChild(capabilityCard);
       });
@@ -79,6 +103,17 @@ document.addEventListener("DOMContentLoaded", () => {
     modalCapabilityName.textContent = `Registering for: ${capability}`;
     registerModal.classList.remove("hidden");
     document.getElementById("email").value = "";
+    messageDiv.classList.add("hidden");
+    
+    // Set focus to email input for accessibility
+    setTimeout(() => document.getElementById("email").focus(), 100);
+  }
+
+  // Helper to close the register modal
+  function closeRegisterModal() {
+    registerModal.classList.add("hidden");
+    selectedCapabilityInput.value = ""; // Clear the selected capability
+    registerForm.reset();
     messageDiv.classList.add("hidden");
   }
 
@@ -169,22 +204,21 @@ document.addEventListener("DOMContentLoaded", () => {
       if (response.ok) {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
-        registerForm.reset();
+        messageDiv.classList.remove("hidden");
 
         // Refresh capabilities list to show updated consultants
         fetchCapabilities();
 
-        // Close modal after successful registration
+        // Close modal after successful registration (only on success)
         setTimeout(() => {
-          registerModal.classList.add("hidden");
-          messageDiv.classList.add("hidden");
+          closeRegisterModal();
         }, 2000);
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
+        messageDiv.classList.remove("hidden");
+        // Modal stays open so user can see error and retry
       }
-
-      messageDiv.classList.remove("hidden");
     } catch (error) {
       messageDiv.textContent = "Failed to register. Please try again.";
       messageDiv.className = "error";
