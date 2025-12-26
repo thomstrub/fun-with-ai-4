@@ -82,17 +82,28 @@ document.addEventListener("DOMContentLoaded", () => {
     messageDiv.classList.add("hidden");
   }
 
+  // Helper to close the register modal
+  function closeRegisterModal() {
+    registerModal.classList.add("hidden");
+  }
+
   // Close modal handlers
   closeModal.addEventListener("click", () => {
-    registerModal.classList.add("hidden");
+    closeRegisterModal();
   });
 
   registerModal.addEventListener("click", (event) => {
     if (event.target === registerModal) {
-      registerModal.classList.add("hidden");
+      closeRegisterModal();
     }
   });
 
+  // Close modal with Escape key for keyboard accessibility
+  document.addEventListener("keydown", (event) => {
+    if ((event.key === "Escape" || event.key === "Esc") && !registerModal.classList.contains("hidden")) {
+      closeRegisterModal();
+    }
+  });
   // Handle unregister functionality
   async function handleUnregister(event) {
     const button = event.target;
