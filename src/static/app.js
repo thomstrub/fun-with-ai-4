@@ -117,6 +117,11 @@ document.addEventListener("DOMContentLoaded", () => {
     messageDiv.classList.add("hidden");
   }
 
+  // Helper to close the register modal
+  function closeRegisterModal() {
+    registerModal.classList.add("hidden");
+  }
+
   // Close modal handlers
   closeModal.addEventListener("click", () => {
     closeRegisterModal();
@@ -134,7 +139,6 @@ document.addEventListener("DOMContentLoaded", () => {
       closeRegisterModal();
     }
   });
-
   // Handle unregister functionality
   async function handleUnregister(event) {
     const button = event.target;
